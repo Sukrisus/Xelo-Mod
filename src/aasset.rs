@@ -34,7 +34,7 @@ const CAPE_TEXTURE_PATH: &str = "/storage/emulated/0/Android/data/com.origin.lau
 const TITLE_PNG: &[u8] = include_bytes!("minecraft_title_5.png");
 
 const MOBS_JSON: &[u8] = include_bytes!("cape_physics/mobs.json");
-const PLAYER_ANIMATION_JSON: &[u8] = include_bytes!("cape_physics/player.animation.json");
+// const PLAYER_ANIMATION_JSON: &[u8] = include_bytes!("cape_physics/player.animation.json"); // Removed - no longer needed
 
 const RENDER_CHUNK_NV_MATERIAL_BIN: &[u8] = include_bytes!("nightvision_materials/RenderChunk.material.bin");
 
@@ -50,24 +50,24 @@ const CUSTOM_SKINS_JSON: &str = r#"{"skins":[{"localization_name":"Steve","geome
 
 const CUSTOM_BLOCKOUTLINE: &str = r#"{"materials":{"block_overlay":{"+states":["Blending","DisableDepthWrite","DisableAlphaWrite","StencilWrite","EnableStencilTest"],"backFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"depthBias":100.0,"depthBiasOGL":100.0,"depthFunc":"LessEqual","fragmentShader":"shaders/texture_cutout.fragment","frontFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"msaaSupport":"Both","slopeScaledDepthBias":15.0,"slopeScaledDepthBiasOGL":20.0,"stencilReadMask":2,"stencilRef":2,"stencilWriteMask":2,"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"UV1"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"cracks_overlay:block_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"blendDst":"Zero","blendSrc":"DestColor","depthFunc":"LessEqual","fragmentShader":"shaders/texture.fragment"},"cracks_overlay_alpha_test:cracks_overlay":{"+defines":["ALPHA_TEST"],"+states":["DisableCulling"]},"cracks_overlay_tile_entity:cracks_overlay":{"+samplerStates":[{"samplerIndex":0,"textureWrap":"Repeat"}],"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}],"vertexShader":"shaders/uv_scale.vertex","vrGeometryShader":"shaders/uv.geometry"},"debug":{"depthFunc":"LessEqual","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"fullscreen_cube_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"depthFunc":"Always","fragmentShader":"shaders/texture_ccolor.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"fullscreen_cube_overlay_blend:fullscreen_cube_overlay":{"+states":["Blending"]},"fullscreen_cube_overlay_opaque:fullscreen_cube_overlay":{"+states":["DisableCulling"]},"lightning":{"+states":["DisableCulling","Blending"],"blendDst":"One","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/lightning.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"name_tag":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending","DisableDepthWrite"],"depthFunc":"Always","fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/position.vertex","vrGeometryShader":"shaders/position.geometry"},"name_tag_depth_tested:name_tag":{"depthFunc":"LessEqual"},"name_text_depth_tested:sign_text":{},"overlay_quad":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"Always","fragmentShader":"shaders/texture_raw_alphatest.fragment","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"overlay_quad_clear":{"depthFunc":"Always","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/simple.vertex","vrGeometryShader":"shaders/color.geometry"},"plankton:precipitation":{"+defines":["COMFORT_MODE","FLIP_OCCLUSION","NO_VARIETY"]},"precipitation":{"+defines":["COMFORT_MODE"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"},{"samplerIndex":1,"textureFilter":"Point"},{"samplerIndex":2,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/rain_snow.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/rain_snow.vertex","vrGeometryShader":"shaders/rain_snow.geometry"},"rain:precipitation":{},"selection_box":{"+defines":["LINE_STRIP"],"depthFunc":"LessEqual","fragmentShader":"shaders/selection_box.fragment","msaaSupport":"Both","primitiveMode":"Line","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"selection_overlay:block_overlay":{"blendDst":"SourceColor","blendSrc":"DestColor","vertexShader":"shaders/uv_selection_overlay.vertex"},"selection_overlay_alpha:selection_overlay_level":{"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}]},"selection_overlay_block_entity:selection_overlay":{"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]},"skinning_color":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Color"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_double_sided:selection_overlay":{"+states":["DisableCulling"]},"selection_overlay_item:selection_overlay":{},"selection_overlay_level:selection_overlay":{"msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_opaque:selection_overlay":{"fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"sign_text":{"+defines":["ALPHA_TEST","USE_LIGHTING"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending"],"depthBias":10.0,"depthBiasOGL":10.0,"depthFunc":"LessEqual","fragmentShader":"shaders/text.fragment","msaaSupport":"Both","slopeScaledDepthBias":2.0,"slopeScaledDepthBiasOGL":10.0,"vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/color_uv.vertex","vrGeometryShader":"shaders/color_uv.geometry"},"snow:precipitation":{"+defines":["SNOW"]},"version":"1.0.0"}}"#;
 
-// Fixed render controller JSON with proper format and indentation
-const RENDER_JSON: &str = r#"{
-    "format_version": "1.8.0",
-    "render_controllers": {
-        "controller.render.player.cape": {
-            "rebuild_animation_matrices": true,
-            "geometry": "Geometry.cape",
-            "materials": [
-                {
-                    "*": "Material.cape"
-                }
-            ],
-            "textures": [
-                "Texture.cape"
-            ]
-        }
-    }
-}"#;
+// Cape render controller removed - cape physics functionality disabled
+// const RENDER_JSON: &str = r#"{
+//     "format_version": "1.8.0",
+//     "render_controllers": {
+//         "controller.render.player.cape": {
+//             "rebuild_animation_matrices": true,
+//             "geometry": "Geometry.cape",
+//             "materials": [
+//                 {
+//                     "*": "Material.cape"
+//                 }
+//             ],
+//             "textures": [
+//                 "Texture.cape"
+//             ]
+//         }
+//     }
+// }"#;
 
 const CLASSIC_STEVE_TEXTURE: &[u8] = include_bytes!("s.png");
 const CLASSIC_ALEX_TEXTURE: &[u8] = include_bytes!("a.png");
@@ -467,15 +467,10 @@ fn get_cape_model_data(filename: &str) -> Option<&'static [u8]> {
     }
 }
 
-fn get_cape_animation_data(filename: &str) -> Option<&'static [u8]> {
-    if !is_cape_physics_enabled() {
-        return None;
-    }
-    
-    match filename {
-        "player.animation.json" => Some(PLAYER_ANIMATION_JSON),
-        _ => None,
-    }
+// Cape physics animation functionality removed - only geometry removal is handled now
+fn get_cape_animation_data(_filename: &str) -> Option<&'static [u8]> {
+    // Cape physics animations are no longer provided
+    None
 }
 
 // Enhanced player.entity.json detection
@@ -777,14 +772,14 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
-    // Handle cape render controllers
-    if is_client_capes_file(c_path) {
-        log::info!("Intercepting cape render controller file with cape content: {}", c_path.display());
-        let buffer = RENDER_JSON.as_bytes().to_vec();
-        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
-        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
-        return aasset;
-    }
+    // Cape render controllers disabled - cape physics functionality removed
+    // if is_client_capes_file(c_path) {
+    //     log::info!("Intercepting cape render controller file with cape content: {}", c_path.display());
+    //     let buffer = RENDER_JSON.as_bytes().to_vec();
+    //     let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+    //     wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+    //     return aasset;
+    // }
     
     if is_outline_material_file(c_path) {
         log::info!("Intercepting  ui3dmaterial file with new content: {}", c_path.display());
