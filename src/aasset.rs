@@ -1293,6 +1293,50 @@ fn modify_contents_json(original_data: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
+// Modify game's mobs.json to remove geometry.cape completely
+fn modify_game_mobs_json(original_data: &[u8]) -> Option<Vec<u8>> {
+    let json_str = match std::str::from_utf8(original_data) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("Failed to parse game mobs.json as UTF-8: {}", e);
+            return None;
+        }
+    };
+    
+    let mut json_value: Value = match serde_json::from_str(json_str) {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("Failed to parse game mobs.json as JSON: {}", e);
+            return None;
+        }
+    };
+    
+    // Remove the geometry.cape object completely
+    if let Some(obj) = json_value.as_object_mut() {
+        if obj.contains_key("geometry.cape") {
+            obj.remove("geometry.cape");
+            log::info!("Removed geometry.cape from game's mobs.json");
+        } else {
+            log::debug!("geometry.cape not found in game's mobs.json");
+        }
+    } else {
+        log::error!("Game mobs.json is not a valid JSON object");
+        return None;
+    }
+    
+    // Convert back to JSON string with proper formatting
+    match serde_json::to_string_pretty(&json_value) {
+        Ok(modified_json) => {
+            log::info!("Successfully removed cape geometry from game's mobs.json");
+            Some(modified_json.into_bytes())
+        }
+        Err(e) => {
+            log::error!("Failed to serialize modified game mobs.json: {}", e);
+            None
+        }
+    }
+}
+
 pub(crate) unsafe fn open(
     man: *mut AAssetManager,
     fname: *const libc::c_char,
@@ -1458,6 +1502,43 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
+    // Handle game's mobs.json modification to remove cape geometry
+    if is_game_mobs_json_file(c_path) {
+        log::info!("Intercepting game's mobs.json to remove cape geometry: {}", c_path.display());
+        
+        // Read the original file first
+        if aasset.is_null() {
+            log::error!("Failed to open original game mobs.json");
+            return aasset;
+        }
+        
+        let length = ndk_sys::AAsset_getLength(aasset) as usize;
+        if length == 0 {
+            log::error!("Game mobs.json has zero length");
+            return aasset;
+        }
+        
+        let mut original_data = vec![0u8; length];
+        let bytes_read = ndk_sys::AAsset_read(aasset, original_data.as_mut_ptr() as *mut libc::c_void, length);
+        
+        if bytes_read != length as i32 {
+            log::error!("Failed to read original game mobs.json completely (read {}, expected {})", bytes_read, length);
+            return aasset;
+        }
+        
+        // Reset the asset position for normal operation
+        ndk_sys::AAsset_seek(aasset, 0, libc::SEEK_SET);
+        
+        if let Some(modified_data) = modify_game_mobs_json(&original_data) {
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(modified_data));
+            return aasset;
+        } else {
+            log::warn!("Failed to modify game mobs.json, using original");
+            return aasset;
+        }
+    }
+    
     // Custom splashes
     if os_filename == "splashes.json" {
         log::info!("Intercepting splashes.json with custom content");
@@ -1576,6 +1657,8 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
+    // Legacy cape physics file handling - now handled by specific file detection above
+    // These functions are deprecated but kept for compatibility
     if let Some(cape_physics_animation_data) = get_cape_animation_data(&filename_str) {
         log::info!("Intercepting {} with cape-physics animation (cape-physics enabled)", filename_str);
         let buffer = cape_physics_animation_data.to_vec();
