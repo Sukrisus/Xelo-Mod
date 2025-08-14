@@ -1011,7 +1011,7 @@ fn is_contents_json_file(c_path: &Path) -> bool {
     })
 }
 
-// Cape animation file detection
+// Cape animation file detection - Enhanced to work without existing folders
 fn is_cape_animation_file(c_path: &Path) -> bool {
     if !is_cape_physics_enabled() {
         return false;
@@ -1023,33 +1023,61 @@ fn is_cape_animation_file(c_path: &Path) -> bool {
         None => return false,
     };
     
-    // Check for cape.animation.json
+    // Check for cape.animation.json - broader matching to catch requests even without existing folders
     if filename == "cape.animation.json" {
-        // Check if it's in a valid versioned vanilla animations location
+        // Check if it's in any versioned vanilla location (broader patterns)
         let animation_patterns = [
-            "vanilla_1.19.40/animations/cape.animation.json",
-            "/vanilla_1.19.40/animations/cape.animation.json",
-            "resource_packs/vanilla_1.19.40/animations/cape.animation.json",
-            "assets/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
-            "/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
-            "/assets/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
-            // Support other versions
-            "vanilla_1.19.41/animations/cape.animation.json",
-            "vanilla_1.19.42/animations/cape.animation.json",
-            "vanilla_1.19.43/animations/cape.animation.json",
-            "vanilla_1.19.44/animations/cape.animation.json",
-            "vanilla_1.20/animations/cape.animation.json",
+            "vanilla_1.19.40",
+            "vanilla_1.19.41", 
+            "vanilla_1.19.42",
+            "vanilla_1.19.43",
+            "vanilla_1.19.44",
+            "vanilla_1.20",
+            "animations",
         ];
         
+        // If the path contains any versioned vanilla folder OR animations folder, serve it
         return animation_patterns.iter().any(|pattern| {
-            path_str.contains(pattern) || path_str.ends_with(pattern)
-        });
+            path_str.contains(pattern)
+        }) && filename == "cape.animation.json";
     }
     
     false
 }
 
-// Cape geometry file detection
+// Virtual directory detection for cape folders
+fn is_cape_directory_request(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    
+    // Check if it's requesting cape-related directories
+    let cape_directory_patterns = [
+        "vanilla_1.19.40/animations",
+        "vanilla_1.19.40/models",
+        "vanilla_1.19.40/models/entity",
+        "/vanilla_1.19.40/animations",
+        "/vanilla_1.19.40/models", 
+        "/vanilla_1.19.40/models/entity",
+        "vanilla_1.19.41/animations",
+        "vanilla_1.19.41/models",
+        "vanilla_1.19.41/models/entity",
+        "vanilla_1.19.42/animations",
+        "vanilla_1.19.42/models",
+        "vanilla_1.19.42/models/entity",
+        "vanilla_1.20/animations",
+        "vanilla_1.20/models",
+        "vanilla_1.20/models/entity",
+    ];
+    
+    cape_directory_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
+// Cape geometry file detection - Enhanced to work without existing folders
 fn is_cape_geometry_file(c_path: &Path) -> bool {
     if !is_cape_physics_enabled() {
         return false;
@@ -1061,27 +1089,24 @@ fn is_cape_geometry_file(c_path: &Path) -> bool {
         None => return false,
     };
     
-    // Check for cape.geo.json
+    // Check for cape.geo.json - broader matching to catch requests even without existing folders
     if filename == "cape.geo.json" {
-        // Check if it's in a valid versioned vanilla models location
+        // Check if it's in any versioned vanilla location (broader patterns)
         let geometry_patterns = [
-            "vanilla_1.19.40/models/entity/cape.geo.json",
-            "/vanilla_1.19.40/models/entity/cape.geo.json",
-            "resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
-            "assets/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
-            "/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
-            "/assets/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
-            // Support other versions
-            "vanilla_1.19.41/models/entity/cape.geo.json",
-            "vanilla_1.19.42/models/entity/cape.geo.json",
-            "vanilla_1.19.43/models/entity/cape.geo.json",
-            "vanilla_1.19.44/models/entity/cape.geo.json",
-            "vanilla_1.20/models/entity/cape.geo.json",
+            "vanilla_1.19.40",
+            "vanilla_1.19.41",
+            "vanilla_1.19.42", 
+            "vanilla_1.19.43",
+            "vanilla_1.19.44",
+            "vanilla_1.20",
+            "models",
+            "entity",
         ];
         
+        // If the path contains any versioned vanilla folder OR models/entity folder, serve it
         return geometry_patterns.iter().any(|pattern| {
-            path_str.contains(pattern) || path_str.ends_with(pattern)
-        });
+            path_str.contains(pattern)
+        }) && filename == "cape.geo.json";
     }
     
     false
@@ -1416,6 +1441,19 @@ pub(crate) unsafe fn open(
         }
     }
     
+    // Handle cape directory requests - Create virtual directories for cape files
+    if is_cape_directory_request(c_path) {
+        log::info!("Creating virtual cape directory: {}", c_path.display());
+        
+        // For Android AAssetManager, we need to return a valid (but minimal) asset
+        // This tells the game the directory "exists" even if it doesn't physically exist
+        let empty_dir_data = b"{}"; // Minimal valid content
+        let buffer = empty_dir_data.to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
+    }
+    
     // Handle cape animation file requests
     if is_cape_animation_file(c_path) {
         log::info!("Serving cape animation file: {}", c_path.display());
@@ -1435,6 +1473,32 @@ pub(crate) unsafe fn open(
     }
     
     // Removed complex mobs.json modification - now using versioned vanilla folder approach
+    
+    // Fallback cape file detection - Catch any request for cape files regardless of folder structure
+    if is_cape_physics_enabled() {
+        let filename = match c_path.file_name() {
+            Some(name) => name.to_string_lossy(),
+            None => "".into(),
+        };
+        
+        // Fallback for cape.animation.json - serve it from ANY path if folders don't exist
+        if filename == "cape.animation.json" {
+            log::info!("Fallback: Serving cape animation file from any path: {}", c_path.display());
+            let buffer = CAPE_ANIMATION_JSON.as_bytes().to_vec();
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+            return aasset;
+        }
+        
+        // Fallback for cape.geo.json - serve it from ANY path if folders don't exist
+        if filename == "cape.geo.json" {
+            log::info!("Fallback: Serving cape geometry file from any path: {}", c_path.display());
+            let buffer = CAPE_GEO_JSON.as_bytes().to_vec();
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+            return aasset;
+        }
+    }
     
     // Custom splashes
     if os_filename == "splashes.json" {
