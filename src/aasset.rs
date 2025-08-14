@@ -580,6 +580,40 @@ fn is_player_entity_file(c_path: &Path) -> bool {
     })
 }
 
+// Contents.json detection for adding cape file paths
+fn is_contents_json_file(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Must be exactly contents.json
+    if filename != "contents.json" {
+        return false;
+    }
+    
+    // Check if it's in a valid vanilla resource pack location
+    let contents_patterns = [
+        "vanilla/contents.json",
+        "/vanilla/contents.json",
+        "resource_packs/vanilla/contents.json",
+        "assets/resource_packs/vanilla/contents.json",
+        "/resource_packs/vanilla/contents.json",
+        "/assets/resource_packs/vanilla/contents.json",
+        "vanilla_resource_pack/contents.json",
+        "/vanilla_resource_pack/contents.json",
+    ];
+    
+    contents_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
 // Improved custom cape texture loading with better error handling
 fn load_custom_cape_texture() -> Option<Vec<u8>> {
     match std::fs::read(CAPE_TEXTURE_PATH) {
@@ -682,6 +716,77 @@ fn modify_player_entity_json(original_data: &[u8]) -> Option<Vec<u8>> {
         Ok(modified_json) => Some(modified_json.into_bytes()),
         Err(e) => {
             log::error!("Failed to serialize modified player.entity.json: {}", e);
+            None
+        }
+    }
+}
+
+// Modify contents.json to include cape file paths
+fn modify_contents_json(original_data: &[u8]) -> Option<Vec<u8>> {
+    let json_str = match std::str::from_utf8(original_data) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("Failed to parse contents.json as UTF-8: {}", e);
+            return None;
+        }
+    };
+    
+    let mut json_value: Value = match serde_json::from_str(json_str) {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("Failed to parse contents.json as JSON: {}", e);
+            return None;
+        }
+    };
+    
+    // Navigate to the content array
+    if let Some(content_array) = json_value
+        .get_mut("content")
+        .and_then(|content| content.as_array_mut())
+    {
+        // Define the cape file paths to add
+        let cape_paths = [
+            "models/entity/cape.geo.json",
+            "animations/cape.animation.json"
+        ];
+        
+        for cape_path in cape_paths.iter() {
+            // Check if this path already exists
+            let path_exists = content_array.iter().any(|item| {
+                if let Some(obj) = item.as_object() {
+                    if let Some(path_value) = obj.get("path") {
+                        if let Some(path_str) = path_value.as_str() {
+                            return path_str == *cape_path;
+                        }
+                    }
+                }
+                false
+            });
+            
+            // Add the path if it doesn't exist
+            if !path_exists {
+                let cape_entry = serde_json::json!({
+                    "path": cape_path
+                });
+                content_array.push(cape_entry);
+                log::info!("Added {} to contents.json", cape_path);
+            } else {
+                log::debug!("Cape path {} already exists in contents.json", cape_path);
+            }
+        }
+    } else {
+        log::error!("Failed to find 'content' array in contents.json");
+        return None;
+    }
+    
+    // Convert back to JSON string with proper formatting
+    match serde_json::to_string_pretty(&json_value) {
+        Ok(modified_json) => {
+            log::info!("Successfully modified contents.json with cape paths");
+            Some(modified_json.into_bytes())
+        }
+        Err(e) => {
+            log::error!("Failed to serialize modified contents.json: {}", e);
             None
         }
     }
@@ -793,6 +898,43 @@ pub(crate) unsafe fn open(
             return aasset;
         } else {
             log::warn!("Failed to modify player.entity.json, using original");
+            return aasset;
+        }
+    }
+    
+    // Handle contents.json modification to add cape file paths
+    if is_contents_json_file(c_path) {
+        log::info!("Intercepting contents.json to add cape file paths: {}", c_path.display());
+        
+        // Read the original file first
+        if aasset.is_null() {
+            log::error!("Failed to open original contents.json");
+            return aasset;
+        }
+        
+        let length = ndk_sys::AAsset_getLength(aasset) as usize;
+        if length == 0 {
+            log::error!("contents.json has zero length");
+            return aasset;
+        }
+        
+        let mut original_data = vec![0u8; length];
+        let bytes_read = ndk_sys::AAsset_read(aasset, original_data.as_mut_ptr() as *mut libc::c_void, length);
+        
+        if bytes_read != length as i32 {
+            log::error!("Failed to read original contents.json completely (read {}, expected {})", bytes_read, length);
+            return aasset;
+        }
+        
+        // Reset the asset position for normal operation
+        ndk_sys::AAsset_seek(aasset, 0, libc::SEEK_SET);
+        
+        if let Some(modified_data) = modify_contents_json(&original_data) {
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(modified_data));
+            return aasset;
+        } else {
+            log::warn!("Failed to modify contents.json, using original");
             return aasset;
         }
     }
