@@ -898,15 +898,10 @@ fn is_persona_file_to_block(c_path: &Path) -> bool {
     })
 }
 
+// This function is now deprecated - we'll modify the game's mobs.json directly
 fn get_cape_model_data(filename: &str) -> Option<&'static [u8]> {
-    if !is_cape_physics_enabled() {
-        return None;
-    }
-    
-    match filename {
-        "mobs.json" => Some(MOBS_JSON),
-        _ => None,
-    }
+    // No longer serve static mobs.json - we'll intercept and modify the original instead
+    None
 }
 
 // Cape physics animation data - now provides actual animation
@@ -1076,6 +1071,48 @@ fn is_cape_geometry_file(c_path: &Path) -> bool {
     }
     
     false
+}
+
+// Game's mobs.json file detection for cape removal
+fn is_game_mobs_json_file(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Must be exactly mobs.json
+    if filename != "mobs.json" {
+        return false;
+    }
+    
+    // Check if it's the game's original mobs.json (not our custom one)
+    // Exclude our cape_physics folder
+    if path_str.contains("cape_physics") {
+        return false;
+    }
+    
+    // Check if it's in valid game asset locations
+    let mobs_patterns = [
+        "mobs.json",
+        "/mobs.json",
+        "resource_packs/vanilla/mobs.json",
+        "assets/resource_packs/vanilla/mobs.json",
+        "/resource_packs/vanilla/mobs.json",
+        "/assets/resource_packs/vanilla/mobs.json",
+        "vanilla/mobs.json",
+        "/vanilla/mobs.json",
+        "assets/mobs.json",
+        "/assets/mobs.json",
+    ];
+    
+    mobs_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
 }
 
 // Improved custom cape texture loading with better error handling
