@@ -33,8 +33,389 @@ const CAPE_TEXTURE_PATH: &str = "/storage/emulated/0/Android/data/com.origin.lau
 
 const TITLE_PNG: &[u8] = include_bytes!("minecraft_title_5.png");
 
+// Cape animation JSON for cape physics
+const CAPE_ANIMATION_JSON: &str = r#"{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.player.cape": {
+			"loop": true,
+			"bones": {
+				"cape": {
+					"rotation": ["math.clamp(math.lerp(0, -110, query.cape_flap_amount) - (13 * query.modified_move_speed), -70, 0)", "query.modified_move_speed * math.pow(math.sin(query.body_y_rotation - query.head_y_rotation(0)), 3) * 55", 0],
+					"position": [0, 0, "query.get_root_locator_offset('armor_offset.default_neck', 1)"]
+				},
+				"part1": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * (math.cos(query.modified_distance_moved * 18) * 16)", 0, "0"]
+				},
+				"part2": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(22 - query.modified_distance_moved * 18) * 13", 0, 0],
+					"scale": 1
+				},
+				"part3": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(50 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part4": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(76 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part5": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(100 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part6": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(122 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part7": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(142 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part8": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(160 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part9": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(176 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part10": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(190 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part11": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(202 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part12": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(212 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part13": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(220 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part14": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(226 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part15": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(230 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"part16": {
+					"rotation": ["math.clamp(query.cape_flap_amount, 0, 0.5) * math.cos(232 - query.modified_distance_moved * 18) * 13", 0, 0]
+				},
+				"shoulders": {
+					"rotation": [0, "query.modified_move_speed * math.pow(math.sin(query.body_y_rotation - query.head_y_rotation(0)), 3) * 60", 0]
+				}
+			}
+		}
+	}
+}"#;
+
+// Cape geometry JSON for cape physics
+const CAPE_GEO_JSON: &str = r#"{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.cape",
+				"texture_width": 64,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 3.5,
+				"visible_bounds_offset": [0, 1.25, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "waist",
+					"parent": "root",
+					"pivot": [0, 12, 0]
+				},
+				{
+					"name": "body",
+					"parent": "waist",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "cape",
+					"parent": "body",
+					"pivot": [0, 24, 2],
+					"rotation": [0, 180, 0]
+				},
+				{
+					"name": "part1",
+					"parent": "cape",
+					"pivot": [0, 24, 2],
+					"cubes": [
+						{
+							"origin": [-5, 23, 1],
+							"size": [10, 1, 1],
+							"uv": {
+								"north": {"uv": [1, 1], "uv_size": [10, 1]},
+								"east": {"uv": [0, 1], "uv_size": [1, 1]},
+								"south": {"uv": [12, 1], "uv_size": [10, 1]},
+								"west": {"uv": [11, 1], "uv_size": [1, 1]},
+								"up": {"uv": [1, 1], "uv_size": [10, -1]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part2",
+					"parent": "part1",
+					"pivot": [0, 23, 1],
+					"cubes": [
+						{
+							"origin": [-5, 22, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 1.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 1.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 1.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 1.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part3",
+					"parent": "part2",
+					"pivot": [0, 22, 1],
+					"cubes": [
+						{
+							"origin": [-5, 21, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 2.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 2.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 2.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 2.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part4",
+					"parent": "part3",
+					"pivot": [0, 21, 1],
+					"cubes": [
+						{
+							"origin": [-5, 20, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 3.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 3.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 3.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 3.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part5",
+					"parent": "part4",
+					"pivot": [0, 20, 1],
+					"cubes": [
+						{
+							"origin": [-5, 19, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 4.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 4.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 4.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 4.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part6",
+					"parent": "part5",
+					"pivot": [0, 19, 1],
+					"cubes": [
+						{
+							"origin": [-5, 18, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 5.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 5.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 5.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 5.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part7",
+					"parent": "part6",
+					"pivot": [0, 18, 1],
+					"cubes": [
+						{
+							"origin": [-5, 17, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 6.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 6.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 6.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 6.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part8",
+					"parent": "part7",
+					"pivot": [0, 17, 1],
+					"cubes": [
+						{
+							"origin": [-5, 16, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 7.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 7.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 7.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 7.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part9",
+					"parent": "part8",
+					"pivot": [0, 16, 1],
+					"cubes": [
+						{
+							"origin": [-5, 15, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 8.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 8.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 8.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 8.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part10",
+					"parent": "part9",
+					"pivot": [0, 15, 1],
+					"cubes": [
+						{
+							"origin": [-5, 14, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 9.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 9.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 9.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 9.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part11",
+					"parent": "part10",
+					"pivot": [0, 14, 1],
+					"cubes": [
+						{
+							"origin": [-5, 13, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 10.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 10.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 10.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 10.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part12",
+					"parent": "part11",
+					"pivot": [0, 13, 1],
+					"cubes": [
+						{
+							"origin": [-5, 12, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 11.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 11.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 11.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 11.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part13",
+					"parent": "part12",
+					"pivot": [0, 12, 1],
+					"cubes": [
+						{
+							"origin": [-5, 11, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 12.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 12.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 12.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 12.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part14",
+					"parent": "part13",
+					"pivot": [0, 11, 1],
+					"cubes": [
+						{
+							"origin": [-5, 10, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 13.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 13.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 13.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 13.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part15",
+					"parent": "part14",
+					"pivot": [0, 10, 1],
+					"cubes": [
+						{
+							"origin": [-5, 9, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 14.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 14.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 14.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 14.5], "uv_size": [1, 1.5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "part16",
+					"parent": "part15",
+					"pivot": [0, 9, 1],
+					"cubes": [
+						{
+							"origin": [-5, 8, 1],
+							"size": [10, 1.5, 1],
+							"uv": {
+								"north": {"uv": [1, 15.5], "uv_size": [10, 1.5]},
+								"east": {"uv": [0, 15.5], "uv_size": [1, 1.5]},
+								"south": {"uv": [12, 15.5], "uv_size": [10, 1.5]},
+								"west": {"uv": [11, 15.5], "uv_size": [1, 1.5]},
+								"down": {"uv": [11, 1], "uv_size": [10, -1]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}"#;
+
 const MOBS_JSON: &[u8] = include_bytes!("cape_physics/mobs.json");
-const PLAYER_ANIMATION_JSON: &[u8] = include_bytes!("cape_physics/player.animation.json");
+// const PLAYER_ANIMATION_JSON: &[u8] = include_bytes!("cape_physics/player.animation.json"); // Removed - no longer needed
 
 const RENDER_CHUNK_NV_MATERIAL_BIN: &[u8] = include_bytes!("nightvision_materials/RenderChunk.material.bin");
 
@@ -50,24 +431,30 @@ const CUSTOM_SKINS_JSON: &str = r#"{"skins":[{"localization_name":"Steve","geome
 
 const CUSTOM_BLOCKOUTLINE: &str = r#"{"materials":{"block_overlay":{"+states":["Blending","DisableDepthWrite","DisableAlphaWrite","StencilWrite","EnableStencilTest"],"backFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"depthBias":100.0,"depthBiasOGL":100.0,"depthFunc":"LessEqual","fragmentShader":"shaders/texture_cutout.fragment","frontFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"msaaSupport":"Both","slopeScaledDepthBias":15.0,"slopeScaledDepthBiasOGL":20.0,"stencilReadMask":2,"stencilRef":2,"stencilWriteMask":2,"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"UV1"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"cracks_overlay:block_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"blendDst":"Zero","blendSrc":"DestColor","depthFunc":"LessEqual","fragmentShader":"shaders/texture.fragment"},"cracks_overlay_alpha_test:cracks_overlay":{"+defines":["ALPHA_TEST"],"+states":["DisableCulling"]},"cracks_overlay_tile_entity:cracks_overlay":{"+samplerStates":[{"samplerIndex":0,"textureWrap":"Repeat"}],"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}],"vertexShader":"shaders/uv_scale.vertex","vrGeometryShader":"shaders/uv.geometry"},"debug":{"depthFunc":"LessEqual","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"fullscreen_cube_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"depthFunc":"Always","fragmentShader":"shaders/texture_ccolor.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"fullscreen_cube_overlay_blend:fullscreen_cube_overlay":{"+states":["Blending"]},"fullscreen_cube_overlay_opaque:fullscreen_cube_overlay":{"+states":["DisableCulling"]},"lightning":{"+states":["DisableCulling","Blending"],"blendDst":"One","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/lightning.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"name_tag":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending","DisableDepthWrite"],"depthFunc":"Always","fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/position.vertex","vrGeometryShader":"shaders/position.geometry"},"name_tag_depth_tested:name_tag":{"depthFunc":"LessEqual"},"name_text_depth_tested:sign_text":{},"overlay_quad":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"Always","fragmentShader":"shaders/texture_raw_alphatest.fragment","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"overlay_quad_clear":{"depthFunc":"Always","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/simple.vertex","vrGeometryShader":"shaders/color.geometry"},"plankton:precipitation":{"+defines":["COMFORT_MODE","FLIP_OCCLUSION","NO_VARIETY"]},"precipitation":{"+defines":["COMFORT_MODE"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"},{"samplerIndex":1,"textureFilter":"Point"},{"samplerIndex":2,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/rain_snow.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/rain_snow.vertex","vrGeometryShader":"shaders/rain_snow.geometry"},"rain:precipitation":{},"selection_box":{"+defines":["LINE_STRIP"],"depthFunc":"LessEqual","fragmentShader":"shaders/selection_box.fragment","msaaSupport":"Both","primitiveMode":"Line","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"selection_overlay:block_overlay":{"blendDst":"SourceColor","blendSrc":"DestColor","vertexShader":"shaders/uv_selection_overlay.vertex"},"selection_overlay_alpha:selection_overlay_level":{"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}]},"selection_overlay_block_entity:selection_overlay":{"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]},"skinning_color":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Color"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_double_sided:selection_overlay":{"+states":["DisableCulling"]},"selection_overlay_item:selection_overlay":{},"selection_overlay_level:selection_overlay":{"msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_opaque:selection_overlay":{"fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"sign_text":{"+defines":["ALPHA_TEST","USE_LIGHTING"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending"],"depthBias":10.0,"depthBiasOGL":10.0,"depthFunc":"LessEqual","fragmentShader":"shaders/text.fragment","msaaSupport":"Both","slopeScaledDepthBias":2.0,"slopeScaledDepthBiasOGL":10.0,"vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/color_uv.vertex","vrGeometryShader":"shaders/color_uv.geometry"},"snow:precipitation":{"+defines":["SNOW"]},"version":"1.0.0"}}"#;
 
-// Fixed render controller JSON with proper format and indentation
-const RENDER_JSON: &str = r#"{
-    "format_version": "1.8.0",
-    "render_controllers": {
-        "controller.render.player.cape": {
-            "rebuild_animation_matrices": true,
-            "geometry": "Geometry.cape",
-            "materials": [
-                {
-                    "*": "Material.cape"
-                }
-            ],
-            "textures": [
-                "Texture.cape"
-            ]
-        }
-    }
-}"#;
+// Empty JSON for disabling particles
+const EMPTY_JSON: &str = "{}";
+
+// Empty particle effect JSON that disables the particle
+const EMPTY_PARTICLE_JSON: &str = r#"{"format_version":"1.10.0","particle_effect":{"description":{"identifier":"minecraft:disabled","basic_render_parameters":{"material":"particles_alpha","texture":"textures/particle/particles"}},"components":{"minecraft:emitter_lifetime_once":{"active_time":0},"minecraft:emitter_rate_instant":{"num_particles":0},"minecraft:emitter_shape_sphere":{"radius":0},"minecraft:particle_lifetime_expression":{"max_lifetime":0},"minecraft:particle_initial_speed":0,"minecraft:particle_motion_dynamic":{},"minecraft:particle_appearance_billboard":{"size":[0,0],"uv":{"texture_width":128,"texture_height":128,"uv":[0,0],"uv_size":[0,0]}}}}}"#;
+
+// Cape render controller removed - cape physics functionality disabled
+// const RENDER_JSON: &str = r#"{
+//     "format_version": "1.8.0",
+//     "render_controllers": {
+//         "controller.render.player.cape": {
+//             "rebuild_animation_matrices": true,
+//             "geometry": "Geometry.cape",
+//             "materials": [
+//                 {
+//                     "*": "Material.cape"
+//                 }
+//             ],
+//             "textures": [
+//                 "Texture.cape"
+//             ]
+//         }
+//     }
+// }"#;
 
 const CLASSIC_STEVE_TEXTURE: &[u8] = include_bytes!("s.png");
 const CLASSIC_ALEX_TEXTURE: &[u8] = include_bytes!("a.png");
@@ -164,17 +551,56 @@ fn get_title_png_data(filename: &str) -> Option<&'static [u8]> {
     }
 }
 
-fn is_particles_folder_to_block(c_path: &Path) -> bool {
+fn is_particles_file_to_replace(c_path: &Path) -> bool {
     if !is_particles_disabler_enabled() {
         return false;
     }
     
+    let path_str = c_path.to_string_lossy().to_lowercase();
     let filename = match c_path.file_name() {
-        Some(name) => name.to_string_lossy(),
+        Some(name) => name.to_string_lossy().to_lowercase(),
         None => return false,
     };
     
-    let particle_files = [
+    // Check if the file is in a particles or effects directory
+    if (path_str.contains("/particles/") || path_str.contains("\\particles\\") ||
+        path_str.contains("/effects/") || path_str.contains("\\effects\\") ||
+        path_str.contains("/particle/") || path_str.contains("\\particle\\") ||
+        path_str.contains("/effect/") || path_str.contains("\\effect\\")) && 
+       filename.ends_with(".json") {
+        return true;
+    }
+    
+    // Check for particle-related files in any location
+    if filename.ends_with(".json") && (
+        filename.contains("particle") || 
+        filename.contains("effect") || 
+        filename.contains("explosion") || 
+        filename.contains("smoke") || 
+        filename.contains("flame") || 
+        filename.contains("fire") || 
+        filename.contains("bubble") || 
+        filename.contains("dust") || 
+        filename.contains("drip") || 
+        filename.contains("splash") || 
+        filename.contains("spell") || 
+        filename.contains("portal") ||
+        filename.contains("emitter") ||
+        filename.contains("sparkle") ||
+        filename.contains("trail") ||
+        filename.contains("glow") ||
+        filename.contains("steam") ||
+        filename.contains("mist") ||
+        filename.contains("vapor") ||
+        filename.contains("ash") ||
+        filename.contains("spark") ||
+        filename.contains("debris")
+    ) {
+        return true;
+    }
+    
+    // Specific particle files that might not match the patterns above
+    let specific_particle_files = [
         "arrowspell.json",
         "balloon_gas.json",
         "basic_bubble.json",
@@ -290,9 +716,25 @@ fn is_particles_folder_to_block(c_path: &Path) -> bool {
         "water_wake.json",
         "witchspell.json",
         "wither_boss_invulnerable.json",
+        // Additional common particle files
+        "flame.json",
+        "fire.json",
+        "torch_flame.json",
+        "campfire_smoke.json",
+        "soul_fire_flame.json",
+        "soul_torch_flame.json",
+        "lava.json",
+        "water.json",
+        "snow.json",
+        "rain.json",
+        "cloud.json",
+        "wind.json",
+        "ambient.json",
+        "environmental.json",
+        "weather.json",
     ];
     
-    particle_files.contains(&filename.as_ref())
+    specific_particle_files.contains(&filename.as_ref())
 }
 
 // Enhanced cape_invisible texture detection with more patterns
@@ -456,25 +898,43 @@ fn is_persona_file_to_block(c_path: &Path) -> bool {
     })
 }
 
+// This function is now deprecated - we'll modify the game's mobs.json directly
 fn get_cape_model_data(filename: &str) -> Option<&'static [u8]> {
-    if !is_cape_physics_enabled() {
-        return None;
-    }
-    
-    match filename {
-        "mobs.json" => Some(MOBS_JSON),
-        _ => None,
-    }
+    // No longer serve static mobs.json - we'll intercept and modify the original instead
+    None
 }
 
+// Cape physics animation data - now provides actual animation
 fn get_cape_animation_data(filename: &str) -> Option<&'static [u8]> {
     if !is_cape_physics_enabled() {
         return None;
     }
     
     match filename {
-        "player.animation.json" => Some(PLAYER_ANIMATION_JSON),
+        "cape.animation.json" => Some(CAPE_ANIMATION_JSON.as_bytes()),
         _ => None,
+    }
+}
+
+fn get_cape_geometry_data(filename: &str) -> Option<&'static [u8]> {
+    if !is_cape_physics_enabled() {
+        return None;
+    }
+    
+    match filename {
+        "cape.geo.json" => Some(CAPE_GEO_JSON.as_bytes()),
+        _ => None,
+    }
+}
+
+fn get_particle_replacement_data(filename: &str) -> &'static str {
+    // For most particle files, use empty particle JSON
+    // For specific files that might need just empty JSON, use EMPTY_JSON
+    match filename.to_lowercase().as_str() {
+        // Some files might work better with just empty JSON
+        f if f.contains("manifest") || f.contains("config") => EMPTY_JSON,
+        // Default to empty particle effect JSON for particle files
+        _ => EMPTY_PARTICLE_JSON,
     }
 }
 
@@ -512,6 +972,147 @@ fn is_player_entity_file(c_path: &Path) -> bool {
         path_str.contains(pattern) || path_str.ends_with(pattern)
     })
 }
+
+// Contents.json detection for adding cape file paths
+fn is_contents_json_file(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Must be exactly contents.json
+    if filename != "contents.json" {
+        return false;
+    }
+    
+    // Check if it's in a valid versioned vanilla resource pack location
+    let contents_patterns = [
+        "vanilla_1.19.40/contents.json",
+        "/vanilla_1.19.40/contents.json",
+        "resource_packs/vanilla_1.19.40/contents.json",
+        "assets/resource_packs/vanilla_1.19.40/contents.json",
+        "/resource_packs/vanilla_1.19.40/contents.json",
+        "/assets/resource_packs/vanilla_1.19.40/contents.json",
+        // Also support other version patterns
+        "vanilla_1.19.41/contents.json",
+        "vanilla_1.19.42/contents.json",
+        "vanilla_1.19.43/contents.json",
+        "vanilla_1.19.44/contents.json",
+        "vanilla_1.20/contents.json",
+    ];
+    
+    contents_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
+// Cape animation file detection - Enhanced to work without existing folders
+fn is_cape_animation_file(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Check for cape.animation.json - broader matching to catch requests even without existing folders
+    if filename == "cape.animation.json" {
+        // Check if it's in any versioned vanilla location (broader patterns)
+        let animation_patterns = [
+            "vanilla_1.19.40",
+            "vanilla_1.19.41", 
+            "vanilla_1.19.42",
+            "vanilla_1.19.43",
+            "vanilla_1.19.44",
+            "vanilla_1.20",
+            "animations",
+        ];
+        
+        // If the path contains any versioned vanilla folder OR animations folder, serve it
+        return animation_patterns.iter().any(|pattern| {
+            path_str.contains(pattern)
+        }) && filename == "cape.animation.json";
+    }
+    
+    false
+}
+
+// Virtual directory detection for cape folders
+fn is_cape_directory_request(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    
+    // Check if it's requesting cape-related directories
+    let cape_directory_patterns = [
+        "vanilla_1.19.40/animations",
+        "vanilla_1.19.40/models",
+        "vanilla_1.19.40/models/entity",
+        "/vanilla_1.19.40/animations",
+        "/vanilla_1.19.40/models", 
+        "/vanilla_1.19.40/models/entity",
+        "vanilla_1.19.41/animations",
+        "vanilla_1.19.41/models",
+        "vanilla_1.19.41/models/entity",
+        "vanilla_1.19.42/animations",
+        "vanilla_1.19.42/models",
+        "vanilla_1.19.42/models/entity",
+        "vanilla_1.20/animations",
+        "vanilla_1.20/models",
+        "vanilla_1.20/models/entity",
+    ];
+    
+    cape_directory_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
+// Cape geometry file detection - Enhanced to work without existing folders
+fn is_cape_geometry_file(c_path: &Path) -> bool {
+    if !is_cape_physics_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Check for cape.geo.json - broader matching to catch requests even without existing folders
+    if filename == "cape.geo.json" {
+        // Check if it's in any versioned vanilla location (broader patterns)
+        let geometry_patterns = [
+            "vanilla_1.19.40",
+            "vanilla_1.19.41",
+            "vanilla_1.19.42", 
+            "vanilla_1.19.43",
+            "vanilla_1.19.44",
+            "vanilla_1.20",
+            "models",
+            "entity",
+        ];
+        
+        // If the path contains any versioned vanilla folder OR models/entity folder, serve it
+        return geometry_patterns.iter().any(|pattern| {
+            path_str.contains(pattern)
+        }) && filename == "cape.geo.json";
+    }
+    
+    false
+}
+
+// Removed game's mobs.json detection - no longer needed with versioned vanilla approach
 
 // Improved custom cape texture loading with better error handling
 fn load_custom_cape_texture() -> Option<Vec<u8>> {
@@ -620,6 +1221,79 @@ fn modify_player_entity_json(original_data: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
+// Modify contents.json to include cape file paths
+fn modify_contents_json(original_data: &[u8]) -> Option<Vec<u8>> {
+    let json_str = match std::str::from_utf8(original_data) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("Failed to parse contents.json as UTF-8: {}", e);
+            return None;
+        }
+    };
+    
+    let mut json_value: Value = match serde_json::from_str(json_str) {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("Failed to parse contents.json as JSON: {}", e);
+            return None;
+        }
+    };
+    
+    // Navigate to the content array
+    if let Some(content_array) = json_value
+        .get_mut("content")
+        .and_then(|content| content.as_array_mut())
+    {
+        // Define the cape file paths to add (relative to versioned vanilla folder)
+        let cape_paths = [
+            "models/entity/cape.geo.json",
+            "animations/cape.animation.json"
+        ];
+        
+        for cape_path in cape_paths.iter() {
+            // Check if this path already exists
+            let path_exists = content_array.iter().any(|item| {
+                if let Some(obj) = item.as_object() {
+                    if let Some(path_value) = obj.get("path") {
+                        if let Some(path_str) = path_value.as_str() {
+                            return path_str == *cape_path;
+                        }
+                    }
+                }
+                false
+            });
+            
+            // Add the path if it doesn't exist
+            if !path_exists {
+                let cape_entry = serde_json::json!({
+                    "path": cape_path
+                });
+                content_array.push(cape_entry);
+                log::info!("Added {} to contents.json", cape_path);
+            } else {
+                log::debug!("Cape path {} already exists in contents.json", cape_path);
+            }
+        }
+    } else {
+        log::error!("Failed to find 'content' array in contents.json");
+        return None;
+    }
+    
+    // Convert back to JSON string with proper formatting
+    match serde_json::to_string_pretty(&json_value) {
+        Ok(modified_json) => {
+            log::info!("Successfully modified contents.json with cape paths");
+            Some(modified_json.into_bytes())
+        }
+        Err(e) => {
+            log::error!("Failed to serialize modified contents.json: {}", e);
+            None
+        }
+    }
+}
+
+// Removed game's mobs.json modification - no longer needed with versioned vanilla approach
+
 pub(crate) unsafe fn open(
     man: *mut AAssetManager,
     fname: *const libc::c_char,
@@ -679,13 +1353,18 @@ pub(crate) unsafe fn open(
         return std::ptr::null_mut();
     }
 
-    // Block entire particles folder if particles disabler enabled
-    if is_particles_folder_to_block(c_path) {
-        log::info!("Blocking particles file due to particles_disabler enabled: {}", c_path.display());
-        if !aasset.is_null() {
-            ndk_sys::AAsset_close(aasset);
-        }
-        return std::ptr::null_mut();
+    // Replace particles files with empty JSON if particles disabler enabled
+    if is_particles_file_to_replace(c_path) {
+        let filename = c_path.file_name()
+            .map(|n| n.to_string_lossy())
+            .unwrap_or_default();
+        
+        log::info!("Replacing particles file with empty JSON due to particles_disabler enabled: {}", c_path.display());
+        let replacement_data = get_particle_replacement_data(&filename);
+        let buffer = replacement_data.as_bytes().to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
     }
     
     // Handle player.entity.json modification
@@ -721,6 +1400,102 @@ pub(crate) unsafe fn open(
             return aasset;
         } else {
             log::warn!("Failed to modify player.entity.json, using original");
+            return aasset;
+        }
+    }
+    
+    // Handle contents.json modification to add cape file paths
+    if is_contents_json_file(c_path) {
+        log::info!("Intercepting contents.json to add cape file paths: {}", c_path.display());
+        
+        // Read the original file first
+        if aasset.is_null() {
+            log::error!("Failed to open original contents.json");
+            return aasset;
+        }
+        
+        let length = ndk_sys::AAsset_getLength(aasset) as usize;
+        if length == 0 {
+            log::error!("contents.json has zero length");
+            return aasset;
+        }
+        
+        let mut original_data = vec![0u8; length];
+        let bytes_read = ndk_sys::AAsset_read(aasset, original_data.as_mut_ptr() as *mut libc::c_void, length);
+        
+        if bytes_read != length as i32 {
+            log::error!("Failed to read original contents.json completely (read {}, expected {})", bytes_read, length);
+            return aasset;
+        }
+        
+        // Reset the asset position for normal operation
+        ndk_sys::AAsset_seek(aasset, 0, libc::SEEK_SET);
+        
+        if let Some(modified_data) = modify_contents_json(&original_data) {
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(modified_data));
+            return aasset;
+        } else {
+            log::warn!("Failed to modify contents.json, using original");
+            return aasset;
+        }
+    }
+    
+    // Handle cape directory requests - Create virtual directories for cape files
+    if is_cape_directory_request(c_path) {
+        log::info!("Creating virtual cape directory: {}", c_path.display());
+        
+        // For Android AAssetManager, we need to return a valid (but minimal) asset
+        // This tells the game the directory "exists" even if it doesn't physically exist
+        let empty_dir_data = b"{}"; // Minimal valid content
+        let buffer = empty_dir_data.to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
+    }
+    
+    // Handle cape animation file requests
+    if is_cape_animation_file(c_path) {
+        log::info!("Serving cape animation file: {}", c_path.display());
+        let buffer = CAPE_ANIMATION_JSON.as_bytes().to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
+    }
+    
+    // Handle cape geometry file requests
+    if is_cape_geometry_file(c_path) {
+        log::info!("Serving cape geometry file: {}", c_path.display());
+        let buffer = CAPE_GEO_JSON.as_bytes().to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
+    }
+    
+    // Removed complex mobs.json modification - now using versioned vanilla folder approach
+    
+    // Fallback cape file detection - Catch any request for cape files regardless of folder structure
+    if is_cape_physics_enabled() {
+        let filename = match c_path.file_name() {
+            Some(name) => name.to_string_lossy(),
+            None => "".into(),
+        };
+        
+        // Fallback for cape.animation.json - serve it from ANY path if folders don't exist
+        if filename == "cape.animation.json" {
+            log::info!("Fallback: Serving cape animation file from any path: {}", c_path.display());
+            let buffer = CAPE_ANIMATION_JSON.as_bytes().to_vec();
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+            return aasset;
+        }
+        
+        // Fallback for cape.geo.json - serve it from ANY path if folders don't exist
+        if filename == "cape.geo.json" {
+            log::info!("Fallback: Serving cape geometry file from any path: {}", c_path.display());
+            let buffer = CAPE_GEO_JSON.as_bytes().to_vec();
+            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
             return aasset;
         }
     }
@@ -777,14 +1552,14 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
-    // Handle cape render controllers
-    if is_client_capes_file(c_path) {
-        log::info!("Intercepting cape render controller file with cape content: {}", c_path.display());
-        let buffer = RENDER_JSON.as_bytes().to_vec();
-        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
-        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
-        return aasset;
-    }
+    // Cape render controllers disabled - cape physics functionality removed
+    // if is_client_capes_file(c_path) {
+    //     log::info!("Intercepting cape render controller file with cape content: {}", c_path.display());
+    //     let buffer = RENDER_JSON.as_bytes().to_vec();
+    //     let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+    //     wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+    //     return aasset;
+    // }
     
     if is_outline_material_file(c_path) {
         log::info!("Intercepting  ui3dmaterial file with new content: {}", c_path.display());
@@ -843,6 +1618,8 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
+    // Legacy cape physics file handling - now handled by specific file detection above
+    // These functions are deprecated but kept for compatibility
     if let Some(cape_physics_animation_data) = get_cape_animation_data(&filename_str) {
         log::info!("Intercepting {} with cape-physics animation (cape-physics enabled)", filename_str);
         let buffer = cape_physics_animation_data.to_vec();
