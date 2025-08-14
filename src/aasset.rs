@@ -990,16 +990,20 @@ fn is_contents_json_file(c_path: &Path) -> bool {
         return false;
     }
     
-    // Check if it's in a valid vanilla resource pack location
+    // Check if it's in a valid versioned vanilla resource pack location
     let contents_patterns = [
-        "vanilla/contents.json",
-        "/vanilla/contents.json",
-        "resource_packs/vanilla/contents.json",
-        "assets/resource_packs/vanilla/contents.json",
-        "/resource_packs/vanilla/contents.json",
-        "/assets/resource_packs/vanilla/contents.json",
-        "vanilla_resource_pack/contents.json",
-        "/vanilla_resource_pack/contents.json",
+        "vanilla_1.19.40/contents.json",
+        "/vanilla_1.19.40/contents.json",
+        "resource_packs/vanilla_1.19.40/contents.json",
+        "assets/resource_packs/vanilla_1.19.40/contents.json",
+        "/resource_packs/vanilla_1.19.40/contents.json",
+        "/assets/resource_packs/vanilla_1.19.40/contents.json",
+        // Also support other version patterns
+        "vanilla_1.19.41/contents.json",
+        "vanilla_1.19.42/contents.json",
+        "vanilla_1.19.43/contents.json",
+        "vanilla_1.19.44/contents.json",
+        "vanilla_1.20/contents.json",
     ];
     
     contents_patterns.iter().any(|pattern| {
@@ -1021,14 +1025,20 @@ fn is_cape_animation_file(c_path: &Path) -> bool {
     
     // Check for cape.animation.json
     if filename == "cape.animation.json" {
-        // Check if it's in a valid animations location
+        // Check if it's in a valid versioned vanilla animations location
         let animation_patterns = [
-            "animations/cape.animation.json",
-            "/animations/cape.animation.json",
-            "resource_packs/vanilla/animations/cape.animation.json",
-            "assets/resource_packs/vanilla/animations/cape.animation.json",
-            "/resource_packs/vanilla/animations/cape.animation.json",
-            "/assets/resource_packs/vanilla/animations/cape.animation.json",
+            "vanilla_1.19.40/animations/cape.animation.json",
+            "/vanilla_1.19.40/animations/cape.animation.json",
+            "resource_packs/vanilla_1.19.40/animations/cape.animation.json",
+            "assets/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
+            "/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
+            "/assets/resource_packs/vanilla_1.19.40/animations/cape.animation.json",
+            // Support other versions
+            "vanilla_1.19.41/animations/cape.animation.json",
+            "vanilla_1.19.42/animations/cape.animation.json",
+            "vanilla_1.19.43/animations/cape.animation.json",
+            "vanilla_1.19.44/animations/cape.animation.json",
+            "vanilla_1.20/animations/cape.animation.json",
         ];
         
         return animation_patterns.iter().any(|pattern| {
@@ -1053,16 +1063,20 @@ fn is_cape_geometry_file(c_path: &Path) -> bool {
     
     // Check for cape.geo.json
     if filename == "cape.geo.json" {
-        // Check if it's in a valid models location
+        // Check if it's in a valid versioned vanilla models location
         let geometry_patterns = [
-            "models/entity/cape.geo.json",
-            "/models/entity/cape.geo.json",
-            "models/cape.geo.json",
-            "/models/cape.geo.json",
-            "resource_packs/vanilla/models/entity/cape.geo.json",
-            "assets/resource_packs/vanilla/models/entity/cape.geo.json",
-            "/resource_packs/vanilla/models/entity/cape.geo.json",
-            "/assets/resource_packs/vanilla/models/entity/cape.geo.json",
+            "vanilla_1.19.40/models/entity/cape.geo.json",
+            "/vanilla_1.19.40/models/entity/cape.geo.json",
+            "resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
+            "assets/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
+            "/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
+            "/assets/resource_packs/vanilla_1.19.40/models/entity/cape.geo.json",
+            // Support other versions
+            "vanilla_1.19.41/models/entity/cape.geo.json",
+            "vanilla_1.19.42/models/entity/cape.geo.json",
+            "vanilla_1.19.43/models/entity/cape.geo.json",
+            "vanilla_1.19.44/models/entity/cape.geo.json",
+            "vanilla_1.20/models/entity/cape.geo.json",
         ];
         
         return geometry_patterns.iter().any(|pattern| {
@@ -1073,47 +1087,7 @@ fn is_cape_geometry_file(c_path: &Path) -> bool {
     false
 }
 
-// Game's mobs.json file detection for cape removal
-fn is_game_mobs_json_file(c_path: &Path) -> bool {
-    if !is_cape_physics_enabled() {
-        return false;
-    }
-    
-    let path_str = c_path.to_string_lossy();
-    let filename = match c_path.file_name() {
-        Some(name) => name.to_string_lossy(),
-        None => return false,
-    };
-    
-    // Must be exactly mobs.json
-    if filename != "mobs.json" {
-        return false;
-    }
-    
-    // Check if it's the game's original mobs.json (not our custom one)
-    // Exclude our cape_physics folder
-    if path_str.contains("cape_physics") {
-        return false;
-    }
-    
-    // Check if it's in valid game asset locations
-    let mobs_patterns = [
-        "mobs.json",
-        "/mobs.json",
-        "resource_packs/vanilla/mobs.json",
-        "assets/resource_packs/vanilla/mobs.json",
-        "/resource_packs/vanilla/mobs.json",
-        "/assets/resource_packs/vanilla/mobs.json",
-        "vanilla/mobs.json",
-        "/vanilla/mobs.json",
-        "assets/mobs.json",
-        "/assets/mobs.json",
-    ];
-    
-    mobs_patterns.iter().any(|pattern| {
-        path_str.contains(pattern) || path_str.ends_with(pattern)
-    })
-}
+// Removed game's mobs.json detection - no longer needed with versioned vanilla approach
 
 // Improved custom cape texture loading with better error handling
 fn load_custom_cape_texture() -> Option<Vec<u8>> {
@@ -1245,7 +1219,7 @@ fn modify_contents_json(original_data: &[u8]) -> Option<Vec<u8>> {
         .get_mut("content")
         .and_then(|content| content.as_array_mut())
     {
-        // Define the cape file paths to add
+        // Define the cape file paths to add (relative to versioned vanilla folder)
         let cape_paths = [
             "models/entity/cape.geo.json",
             "animations/cape.animation.json"
@@ -1293,49 +1267,7 @@ fn modify_contents_json(original_data: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
-// Modify game's mobs.json to remove geometry.cape completely
-fn modify_game_mobs_json(original_data: &[u8]) -> Option<Vec<u8>> {
-    let json_str = match std::str::from_utf8(original_data) {
-        Ok(s) => s,
-        Err(e) => {
-            log::error!("Failed to parse game mobs.json as UTF-8: {}", e);
-            return None;
-        }
-    };
-    
-    let mut json_value: Value = match serde_json::from_str(json_str) {
-        Ok(v) => v,
-        Err(e) => {
-            log::error!("Failed to parse game mobs.json as JSON: {}", e);
-            return None;
-        }
-    };
-    
-    // Remove the geometry.cape object completely
-    if let Some(obj) = json_value.as_object_mut() {
-        if obj.contains_key("geometry.cape") {
-            obj.remove("geometry.cape");
-            log::info!("Removed geometry.cape from game's mobs.json");
-        } else {
-            log::debug!("geometry.cape not found in game's mobs.json");
-        }
-    } else {
-        log::error!("Game mobs.json is not a valid JSON object");
-        return None;
-    }
-    
-    // Convert back to JSON string with proper formatting
-    match serde_json::to_string_pretty(&json_value) {
-        Ok(modified_json) => {
-            log::info!("Successfully removed cape geometry from game's mobs.json");
-            Some(modified_json.into_bytes())
-        }
-        Err(e) => {
-            log::error!("Failed to serialize modified game mobs.json: {}", e);
-            None
-        }
-    }
-}
+// Removed game's mobs.json modification - no longer needed with versioned vanilla approach
 
 pub(crate) unsafe fn open(
     man: *mut AAssetManager,
@@ -1502,42 +1434,7 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
-    // Handle game's mobs.json modification to remove cape geometry
-    if is_game_mobs_json_file(c_path) {
-        log::info!("Intercepting game's mobs.json to remove cape geometry: {}", c_path.display());
-        
-        // Read the original file first
-        if aasset.is_null() {
-            log::error!("Failed to open original game mobs.json");
-            return aasset;
-        }
-        
-        let length = ndk_sys::AAsset_getLength(aasset) as usize;
-        if length == 0 {
-            log::error!("Game mobs.json has zero length");
-            return aasset;
-        }
-        
-        let mut original_data = vec![0u8; length];
-        let bytes_read = ndk_sys::AAsset_read(aasset, original_data.as_mut_ptr() as *mut libc::c_void, length);
-        
-        if bytes_read != length as i32 {
-            log::error!("Failed to read original game mobs.json completely (read {}, expected {})", bytes_read, length);
-            return aasset;
-        }
-        
-        // Reset the asset position for normal operation
-        ndk_sys::AAsset_seek(aasset, 0, libc::SEEK_SET);
-        
-        if let Some(modified_data) = modify_game_mobs_json(&original_data) {
-            let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
-            wanted_lock.insert(AAssetPtr(aasset), Cursor::new(modified_data));
-            return aasset;
-        } else {
-            log::warn!("Failed to modify game mobs.json, using original");
-            return aasset;
-        }
-    }
+    // Removed complex mobs.json modification - now using versioned vanilla folder approach
     
     // Custom splashes
     if os_filename == "splashes.json" {
