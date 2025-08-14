@@ -50,6 +50,12 @@ const CUSTOM_SKINS_JSON: &str = r#"{"skins":[{"localization_name":"Steve","geome
 
 const CUSTOM_BLOCKOUTLINE: &str = r#"{"materials":{"block_overlay":{"+states":["Blending","DisableDepthWrite","DisableAlphaWrite","StencilWrite","EnableStencilTest"],"backFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"depthBias":100.0,"depthBiasOGL":100.0,"depthFunc":"LessEqual","fragmentShader":"shaders/texture_cutout.fragment","frontFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"msaaSupport":"Both","slopeScaledDepthBias":15.0,"slopeScaledDepthBiasOGL":20.0,"stencilReadMask":2,"stencilRef":2,"stencilWriteMask":2,"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"UV1"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"cracks_overlay:block_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"blendDst":"Zero","blendSrc":"DestColor","depthFunc":"LessEqual","fragmentShader":"shaders/texture.fragment"},"cracks_overlay_alpha_test:cracks_overlay":{"+defines":["ALPHA_TEST"],"+states":["DisableCulling"]},"cracks_overlay_tile_entity:cracks_overlay":{"+samplerStates":[{"samplerIndex":0,"textureWrap":"Repeat"}],"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}],"vertexShader":"shaders/uv_scale.vertex","vrGeometryShader":"shaders/uv.geometry"},"debug":{"depthFunc":"LessEqual","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"fullscreen_cube_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"depthFunc":"Always","fragmentShader":"shaders/texture_ccolor.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"fullscreen_cube_overlay_blend:fullscreen_cube_overlay":{"+states":["Blending"]},"fullscreen_cube_overlay_opaque:fullscreen_cube_overlay":{"+states":["DisableCulling"]},"lightning":{"+states":["DisableCulling","Blending"],"blendDst":"One","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/lightning.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"name_tag":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending","DisableDepthWrite"],"depthFunc":"Always","fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/position.vertex","vrGeometryShader":"shaders/position.geometry"},"name_tag_depth_tested:name_tag":{"depthFunc":"LessEqual"},"name_text_depth_tested:sign_text":{},"overlay_quad":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"Always","fragmentShader":"shaders/texture_raw_alphatest.fragment","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"overlay_quad_clear":{"depthFunc":"Always","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/simple.vertex","vrGeometryShader":"shaders/color.geometry"},"plankton:precipitation":{"+defines":["COMFORT_MODE","FLIP_OCCLUSION","NO_VARIETY"]},"precipitation":{"+defines":["COMFORT_MODE"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"},{"samplerIndex":1,"textureFilter":"Point"},{"samplerIndex":2,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/rain_snow.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/rain_snow.vertex","vrGeometryShader":"shaders/rain_snow.geometry"},"rain:precipitation":{},"selection_box":{"+defines":["LINE_STRIP"],"depthFunc":"LessEqual","fragmentShader":"shaders/selection_box.fragment","msaaSupport":"Both","primitiveMode":"Line","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"selection_overlay:block_overlay":{"blendDst":"SourceColor","blendSrc":"DestColor","vertexShader":"shaders/uv_selection_overlay.vertex"},"selection_overlay_alpha:selection_overlay_level":{"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}]},"selection_overlay_block_entity:selection_overlay":{"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]},"skinning_color":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Color"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_double_sided:selection_overlay":{"+states":["DisableCulling"]},"selection_overlay_item:selection_overlay":{},"selection_overlay_level:selection_overlay":{"msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_opaque:selection_overlay":{"fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"sign_text":{"+defines":["ALPHA_TEST","USE_LIGHTING"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending"],"depthBias":10.0,"depthBiasOGL":10.0,"depthFunc":"LessEqual","fragmentShader":"shaders/text.fragment","msaaSupport":"Both","slopeScaledDepthBias":2.0,"slopeScaledDepthBiasOGL":10.0,"vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/color_uv.vertex","vrGeometryShader":"shaders/color_uv.geometry"},"snow:precipitation":{"+defines":["SNOW"]},"version":"1.0.0"}}"#;
 
+// Empty JSON for disabling particles
+const EMPTY_JSON: &str = "{}";
+
+// Empty particle effect JSON that disables the particle
+const EMPTY_PARTICLE_JSON: &str = r#"{"format_version":"1.10.0","particle_effect":{"description":{"identifier":"minecraft:disabled","basic_render_parameters":{"material":"particles_alpha","texture":"textures/particle/particles"}},"components":{"minecraft:emitter_lifetime_once":{"active_time":0},"minecraft:emitter_rate_instant":{"num_particles":0},"minecraft:emitter_shape_sphere":{"radius":0},"minecraft:particle_lifetime_expression":{"max_lifetime":0},"minecraft:particle_initial_speed":0,"minecraft:particle_motion_dynamic":{},"minecraft:particle_appearance_billboard":{"size":[0,0],"uv":{"texture_width":128,"texture_height":128,"uv":[0,0],"uv_size":[0,0]}}}}}"#;
+
 // Cape render controller removed - cape physics functionality disabled
 // const RENDER_JSON: &str = r#"{
 //     "format_version": "1.8.0",
@@ -164,17 +170,56 @@ fn get_title_png_data(filename: &str) -> Option<&'static [u8]> {
     }
 }
 
-fn is_particles_folder_to_block(c_path: &Path) -> bool {
+fn is_particles_file_to_replace(c_path: &Path) -> bool {
     if !is_particles_disabler_enabled() {
         return false;
     }
     
+    let path_str = c_path.to_string_lossy().to_lowercase();
     let filename = match c_path.file_name() {
-        Some(name) => name.to_string_lossy(),
+        Some(name) => name.to_string_lossy().to_lowercase(),
         None => return false,
     };
     
-    let particle_files = [
+    // Check if the file is in a particles or effects directory
+    if (path_str.contains("/particles/") || path_str.contains("\\particles\\") ||
+        path_str.contains("/effects/") || path_str.contains("\\effects\\") ||
+        path_str.contains("/particle/") || path_str.contains("\\particle\\") ||
+        path_str.contains("/effect/") || path_str.contains("\\effect\\")) && 
+       filename.ends_with(".json") {
+        return true;
+    }
+    
+    // Check for particle-related files in any location
+    if filename.ends_with(".json") && (
+        filename.contains("particle") || 
+        filename.contains("effect") || 
+        filename.contains("explosion") || 
+        filename.contains("smoke") || 
+        filename.contains("flame") || 
+        filename.contains("fire") || 
+        filename.contains("bubble") || 
+        filename.contains("dust") || 
+        filename.contains("drip") || 
+        filename.contains("splash") || 
+        filename.contains("spell") || 
+        filename.contains("portal") ||
+        filename.contains("emitter") ||
+        filename.contains("sparkle") ||
+        filename.contains("trail") ||
+        filename.contains("glow") ||
+        filename.contains("steam") ||
+        filename.contains("mist") ||
+        filename.contains("vapor") ||
+        filename.contains("ash") ||
+        filename.contains("spark") ||
+        filename.contains("debris")
+    ) {
+        return true;
+    }
+    
+    // Specific particle files that might not match the patterns above
+    let specific_particle_files = [
         "arrowspell.json",
         "balloon_gas.json",
         "basic_bubble.json",
@@ -290,9 +335,25 @@ fn is_particles_folder_to_block(c_path: &Path) -> bool {
         "water_wake.json",
         "witchspell.json",
         "wither_boss_invulnerable.json",
+        // Additional common particle files
+        "flame.json",
+        "fire.json",
+        "torch_flame.json",
+        "campfire_smoke.json",
+        "soul_fire_flame.json",
+        "soul_torch_flame.json",
+        "lava.json",
+        "water.json",
+        "snow.json",
+        "rain.json",
+        "cloud.json",
+        "wind.json",
+        "ambient.json",
+        "environmental.json",
+        "weather.json",
     ];
     
-    particle_files.contains(&filename.as_ref())
+    specific_particle_files.contains(&filename.as_ref())
 }
 
 // Enhanced cape_invisible texture detection with more patterns
@@ -471,6 +532,17 @@ fn get_cape_model_data(filename: &str) -> Option<&'static [u8]> {
 fn get_cape_animation_data(_filename: &str) -> Option<&'static [u8]> {
     // Cape physics animations are no longer provided
     None
+}
+
+fn get_particle_replacement_data(filename: &str) -> &'static str {
+    // For most particle files, use empty particle JSON
+    // For specific files that might need just empty JSON, use EMPTY_JSON
+    match filename.to_lowercase().as_str() {
+        // Some files might work better with just empty JSON
+        f if f.contains("manifest") || f.contains("config") => EMPTY_JSON,
+        // Default to empty particle effect JSON for particle files
+        _ => EMPTY_PARTICLE_JSON,
+    }
 }
 
 // Enhanced player.entity.json detection
@@ -674,13 +746,18 @@ pub(crate) unsafe fn open(
         return std::ptr::null_mut();
     }
 
-    // Block entire particles folder if particles disabler enabled
-    if is_particles_folder_to_block(c_path) {
-        log::info!("Blocking particles file due to particles_disabler enabled: {}", c_path.display());
-        if !aasset.is_null() {
-            ndk_sys::AAsset_close(aasset);
-        }
-        return std::ptr::null_mut();
+    // Replace particles files with empty JSON if particles disabler enabled
+    if is_particles_file_to_replace(c_path) {
+        let filename = c_path.file_name()
+            .map(|n| n.to_string_lossy())
+            .unwrap_or_default();
+        
+        log::info!("Replacing particles file with empty JSON due to particles_disabler enabled: {}", c_path.display());
+        let replacement_data = get_particle_replacement_data(&filename);
+        let buffer = replacement_data.as_bytes().to_vec();
+        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+        return aasset;
     }
     
     // Handle player.entity.json modification
