@@ -27,20 +27,23 @@ pub struct ModConfig {
     #[serde(rename = "classic_skins")]
     pub classic_skins: bool,
     
-    #[serde(rename = "cape_physics")]
-    pub cape_physics: bool,
-    
     #[serde(rename = "night_vision")]
     pub night_vision: bool,
     
     #[serde(rename = "xelo_title")]
     pub xelo_title: bool,
     
+    #[serde(rename = "no_shadows")]
+    pub no_shadows: bool,
+    
     #[serde(rename = "client_capes")]
     pub client_capes: bool,
     
     #[serde(rename = "white_block_outline")]
     pub white_block_outline: bool,
+    
+    #[serde(rename = "no_flipbook_animations")]
+    pub no_flipbook_animations: bool,
     // You can add more fields as needed
     // #[serde(rename = "CustomField")]
     // pub custom_field: bool,
@@ -49,16 +52,17 @@ pub struct ModConfig {
 impl Default for ModConfig {
     fn default() -> Self {
         Self {
-            no_hurt_cam: true,
+            no_hurt_cam: false,
             no_fog: false,
             particles_disabler: false,
             java_clouds: false,
             java_cubemap: false,
             classic_skins: false,
-            cape_physics: false,
             night_vision: false,
             xelo_title: true,
             client_capes: false,
+            no_shadows: false,
+            no_flipbook_animations: false,
             white_block_outline: false,
         }
     }
@@ -153,10 +157,6 @@ pub fn is_classic_skins_enabled() -> bool {
     get_config().classic_skins
 }
 
-pub fn is_cape_physics_enabled() -> bool {
-    get_config().cape_physics
-}
-
 pub fn is_night_vision_enabled() -> bool {
     get_config().night_vision
 }
@@ -169,8 +169,14 @@ pub fn is_client_capes_enabled() -> bool {
     get_config().client_capes
 }
 
+pub fn is_no_shadows_enabled() -> bool {
+    get_config().no_shadows
+}
 pub fn is_block_whiteoutline_enabled() -> bool {
     get_config().white_block_outline
+}
+pub fn is_no_flipbook_animations_enabled() -> bool {
+    get_config().no_flipbook_animations
 }
 
 // You can add more helper functions for other config values

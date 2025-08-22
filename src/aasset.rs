@@ -1,5 +1,5 @@
 use crate::ResourceLocation;
-use crate::config::{is_no_hurt_cam_enabled, is_no_fog_enabled, is_java_cubemap_enabled, is_particles_disabler_enabled, is_java_clouds_enabled, is_classic_skins_enabled, is_cape_physics_enabled, is_night_vision_enabled, is_xelo_title_enabled, is_client_capes_enabled, is_block_whiteoutline_enabled};
+use crate::config::{is_no_hurt_cam_enabled, is_no_fog_enabled, is_java_cubemap_enabled, is_particles_disabler_enabled, is_java_clouds_enabled, is_classic_skins_enabled, is_no_shadows_enabled, is_night_vision_enabled, is_xelo_title_enabled, is_client_capes_enabled, is_block_whiteoutline_enabled, is_no_flipbook_animations_enabled};
 use libc::{off64_t, off_t};
 use materialbin::{CompiledMaterialDefinition, MinecraftVersion};
 use ndk::asset::Asset;
@@ -26,27 +26,30 @@ static MC_VERSION: OnceLock<Option<MinecraftVersion>> = OnceLock::new();
 static WANTED_ASSETS: Lazy<Mutex<HashMap<AAssetPtr, Cursor<Vec<u8>>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
-const LEGACY_CUBEMAP_MATERIAL_BIN: &[u8] = include_bytes!("java_cubemap/LegacyCubemap.material.bin");
-const RENDER_CHUNK_MATERIAL_BIN: &[u8] = include_bytes!("no_fog_materials/RenderChunk.material.bin");
+const LEGACY_CUBEMAP_MATERIAL_BIN: &[u8] = include_bytes!("qol/java_cubemap/LegacyCubemap.material.bin");
+const RENDER_CHUNK_MATERIAL_BIN: &[u8] = include_bytes!("utils/no_fog_materials/RenderChunk.material.bin");
 
 const CAPE_TEXTURE_PATH: &str = "/storage/emulated/0/Android/data/com.origin.launcher/files/origin_mods/xelo_cape.png";
 
 const TITLE_PNG: &[u8] = include_bytes!("minecraft_title_5.png");
 
-const MOBS_JSON: &[u8] = include_bytes!("cape_physics/mobs.json");
-const PLAYER_ANIMATION_JSON: &[u8] = include_bytes!("cape_physics/player.animation.json");
+const RENDER_CHUNK_NV_MATERIAL_BIN: &[u8] = include_bytes!("utils/nightvision_materials/RenderChunk.material.bin");
 
-const RENDER_CHUNK_NV_MATERIAL_BIN: &[u8] = include_bytes!("nightvision_materials/RenderChunk.material.bin");
+const SHADOWS_MATERIAL: &[u8] = include_bytes!("optimizers/noshadows/shadows.material");
 
-const CUSTOM_SPLASHES_JSON: &str = r#"{"splashes":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"]}"#;
+const COMMON_JSON: &[u8] = include_bytes!("optimizers/noparticles/common.json");
+
+const CUSTOM_SPLASHES_JSON: &str = r#"{"splashes":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"]}"#;
 
 const CUSTOM_FIRST_PERSON_JSON: &str = r#"{"format_version":"1.18.10","minecraft:camera_entity":{"description":{"identifier":"minecraft:first_person"},"components":{"minecraft:camera":{"field_of_view":66,"near_clipping_plane":0.025,"far_clipping_plane":2500},"minecraft:camera_first_person":{},"minecraft:camera_render_first_person_objects":{},"minecraft:camera_attach_to_player":{},"minecraft:camera_offset":{"view":[0,0],"entity":[0,0,0]},"minecraft:camera_direct_look":{"pitch_min":-89.9,"pitch_max":89.9},"minecraft:camera_perspective_option":{"view_mode":"first_person"},"minecraft:update_player_from_camera":{"look_mode":"along_camera"},"minecraft:extend_player_rendering":{},"minecraft:camera_player_sleep_vignette":{},"minecraft:vr_comfort_move":{},"minecraft:default_input_camera":{},"minecraft:gameplay_affects_fov":{},"minecraft:allow_inside_block":{}}}}"#;
 const CUSTOM_THIRD_PERSON_JSON: &str = r#"{"format_version":"1.18.10","minecraft:camera_entity":{"description":{"identifier":"minecraft:third_person"},"components":{"minecraft:camera":{"field_of_view":66,"near_clipping_plane":0.025,"far_clipping_plane":2500},"minecraft:camera_third_person":{},"minecraft:camera_render_player_model":{},"minecraft:camera_attach_to_player":{},"minecraft:camera_offset":{"view":[0,0],"entity":[0,2,5]},"minecraft:camera_look_at_player":{},"minecraft:camera_orbit":{"azimuth_smoothing_spring":0,"polar_angle_smoothing_spring":0,"distance_smoothing_spring":0,"polar_angle_min":0.1,"polar_angle_max":179.9,"radius":4},"minecraft:camera_avoidance":{"relax_distance_smoothing_spring":0,"distance_constraint_min":0.25},"minecraft:camera_perspective_option":{"view_mode":"third_person"},"minecraft:update_player_from_camera":{"look_mode":"along_camera"},"minecraft:camera_player_sleep_vignette":{},"minecraft:gameplay_affects_fov":{},"minecraft:allow_inside_block":{},"minecraft:extend_player_rendering":{}}}}"#;
 const CUSTOM_THIRD_PERSON_FRONT_JSON: &str = r#"{"format_version":"1.18.10","minecraft:camera_entity":{"description":{"identifier":"minecraft:third_person_front"},"components":{"minecraft:camera":{"field_of_view":66,"near_clipping_plane":0.025,"far_clipping_plane":2500},"minecraft:camera_third_person":{},"minecraft:camera_render_player_model":{},"minecraft:camera_attach_to_player":{},"minecraft:camera_offset":{"view":[0,0],"entity":[0,2,5]},"minecraft:camera_look_at_player":{},"minecraft:camera_orbit":{"azimuth_smoothing_spring":0,"polar_angle_smoothing_spring":0,"distance_smoothing_spring":0,"polar_angle_min":0.1,"polar_angle_max":179.9,"radius":4,"invert_x_input":true},"minecraft:camera_avoidance":{"relax_distance_smoothing_spring":0,"distance_constraint_min":0.25},"minecraft:camera_perspective_option":{"view_mode":"third_person_front"},"minecraft:update_player_from_camera":{"look_mode":"at_camera"},"minecraft:camera_player_sleep_vignette":{},"minecraft:gameplay_affects_fov":{},"minecraft:allow_inside_block":{},"minecraft:extend_player_rendering":{}}}}"#;
 
-const CUSTOM_LOADING_MESSAGES_JSON: &str = r#"{"beginner_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"mid_game_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"late_game_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"creative_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"editor_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"realms_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"addons_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"store_progress_tooltips":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository:https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"]}"#;
+const CUSTOM_LOADING_MESSAGES_JSON: &str = r#"{"beginner_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"mid_game_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"late_game_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"creative_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"editor_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"realms_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"addons_loading_messages":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"],"store_progress_tooltips":["Xelo Client","Xelo > any other client","The Best Client!!","BlueCat","Xelo is so much better","Xelo Optimizes like no other client","Make Sure to star our repository: https://github.com/Xelo-Client/Xelo","Contributions open!","Made by the community, for the community","Yami is goated!!"]}"#;
 
 const CUSTOM_SKINS_JSON: &str = r#"{"skins":[{"localization_name":"Steve","geometry":"geometry.humanoid.custom","texture":"steve.png","type":"free"},{"localization_name":"Alex","geometry":"geometry.humanoid.customSlim","texture":"alex.png","type":"free"}],"serialize_name":"Standard","localization_name":"Standard"}"#;
+
+const FLIPBOOK_ANIMATION_JSON: &[u8] = include_bytes!("utils/no_flipbook_animations/flipbook_textures.json");
 
 const CUSTOM_BLOCKOUTLINE: &str = r#"{"materials":{"block_overlay":{"+states":["Blending","DisableDepthWrite","DisableAlphaWrite","StencilWrite","EnableStencilTest"],"backFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"depthBias":100.0,"depthBiasOGL":100.0,"depthFunc":"LessEqual","fragmentShader":"shaders/texture_cutout.fragment","frontFace":{"stencilDepthFailOp":"Keep","stencilFailOp":"Keep","stencilFunc":"NotEqual","stencilPassOp":"Replace"},"msaaSupport":"Both","slopeScaledDepthBias":15.0,"slopeScaledDepthBiasOGL":20.0,"stencilReadMask":2,"stencilRef":2,"stencilWriteMask":2,"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"UV1"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"cracks_overlay:block_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"blendDst":"Zero","blendSrc":"DestColor","depthFunc":"LessEqual","fragmentShader":"shaders/texture.fragment"},"cracks_overlay_alpha_test:cracks_overlay":{"+defines":["ALPHA_TEST"],"+states":["DisableCulling"]},"cracks_overlay_tile_entity:cracks_overlay":{"+samplerStates":[{"samplerIndex":0,"textureWrap":"Repeat"}],"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}],"vertexShader":"shaders/uv_scale.vertex","vrGeometryShader":"shaders/uv.geometry"},"debug":{"depthFunc":"LessEqual","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"fullscreen_cube_overlay":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"depthFunc":"Always","fragmentShader":"shaders/texture_ccolor.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"fullscreen_cube_overlay_blend:fullscreen_cube_overlay":{"+states":["Blending"]},"fullscreen_cube_overlay_opaque:fullscreen_cube_overlay":{"+states":["DisableCulling"]},"lightning":{"+states":["DisableCulling","Blending"],"blendDst":"One","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/lightning.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"}],"vertexShader":"shaders/color.vertex","vrGeometryShader":"shaders/color.geometry"},"name_tag":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending","DisableDepthWrite"],"depthFunc":"Always","fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/position.vertex","vrGeometryShader":"shaders/position.geometry"},"name_tag_depth_tested:name_tag":{"depthFunc":"LessEqual"},"name_text_depth_tested:sign_text":{},"overlay_quad":{"+samplerStates":[{"samplerIndex":0,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"Always","fragmentShader":"shaders/texture_raw_alphatest.fragment","vertexFields":[{"field":"Position"},{"field":"UV0"}],"vertexShader":"shaders/uv.vertex","vrGeometryShader":"shaders/uv.geometry"},"overlay_quad_clear":{"depthFunc":"Always","fragmentShader":"shaders/color.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/simple.vertex","vrGeometryShader":"shaders/color.geometry"},"plankton:precipitation":{"+defines":["COMFORT_MODE","FLIP_OCCLUSION","NO_VARIETY"]},"precipitation":{"+defines":["COMFORT_MODE"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"},{"samplerIndex":1,"textureFilter":"Point"},{"samplerIndex":2,"textureFilter":"Bilinear"}],"+states":["DisableCulling","DisableDepthWrite","Blending"],"blendDst":"OneMinusSrcAlpha","blendSrc":"SourceAlpha","depthFunc":"LessEqual","fragmentShader":"shaders/rain_snow.fragment","msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/rain_snow.vertex","vrGeometryShader":"shaders/rain_snow.geometry"},"rain:precipitation":{},"selection_box":{"+defines":["LINE_STRIP"],"depthFunc":"LessEqual","fragmentShader":"shaders/selection_box.fragment","msaaSupport":"Both","primitiveMode":"Line","vertexFields":[{"field":"Position"}],"vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"selection_overlay:block_overlay":{"blendDst":"SourceColor","blendSrc":"DestColor","vertexShader":"shaders/uv_selection_overlay.vertex"},"selection_overlay_alpha:selection_overlay_level":{"vertexFields":[{"field":"Position"},{"field":"UV1"},{"field":"UV0"}]},"selection_overlay_block_entity:selection_overlay":{"variants":[{"skinning":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Normal"},{"field":"UV0"}]},"skinning_color":{"+defines":["USE_SKINNING"],"vertexFields":[{"field":"Position"},{"field":"BoneId0"},{"field":"Color"},{"field":"Normal"},{"field":"UV0"}]}}],"vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_double_sided:selection_overlay":{"+states":["DisableCulling"]},"selection_overlay_item:selection_overlay":{},"selection_overlay_level:selection_overlay":{"msaaSupport":"Both","vertexFields":[{"field":"Position"},{"field":"Normal"},{"field":"UV0"}]},"selection_overlay_opaque:selection_overlay":{"fragmentShader":"shaders/current_color.fragment","msaaSupport":"Both","vertexShader":"shaders/selection_box.vertex","vrGeometryShader":"shaders/position.geometry"},"sign_text":{"+defines":["ALPHA_TEST","USE_LIGHTING"],"+samplerStates":[{"samplerIndex":0,"textureFilter":"Point"}],"+states":["Blending"],"depthBias":10.0,"depthBiasOGL":10.0,"depthFunc":"LessEqual","fragmentShader":"shaders/text.fragment","msaaSupport":"Both","slopeScaledDepthBias":2.0,"slopeScaledDepthBiasOGL":10.0,"vertexFields":[{"field":"Position"},{"field":"Color"},{"field":"UV0"}],"vertexShader":"shaders/color_uv.vertex","vrGeometryShader":"shaders/color_uv.geometry"},"snow:precipitation":{"+defines":["SNOW"]},"version":"1.0.0"}}"#;
 
@@ -142,6 +145,79 @@ fn get_nightvision_material_data(filename: &str) -> Option<&'static [u8]> {
     }
 }
 
+fn get_shadows_material_data(filename: &str) -> Option<&'static [u8]> {
+    if !is_no_shadows_enabled() {
+        return None;
+    }
+    
+    match filename {
+        "shadows.material" => Some(SHADOWS_MATERIAL),
+        _ => None,
+    }
+}
+
+fn is_no_flipbook_animations_file(c_path: &Path) -> bool {
+    if !is_no_flipbook_animations_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Must be exactly flipbook_textures.json
+    if filename != "flipbook_textures.json" {
+        return false;
+    }
+    
+    // Check if it's in valid animation locations
+    let flipbook_textures_patterns = [
+        "textures/flipbook_textures.json",
+        "/textures/flipbook_textures.json",
+        "resource_packs/vanilla/textures/flipbook_textures.json",
+        "assets/resource_packs/vanilla/textures/flipbook_textures.json",
+        "vanilla/textures/flipbook_textures.json",
+        "assets/textures/flipbook_textures.json",
+    ];
+    
+    flipbook_textures_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
+fn is_particles_disabler_file(c_path: &Path) -> bool {
+    if !is_particles_disabler_enabled() {
+        return false;
+    }
+    
+    let path_str = c_path.to_string_lossy();
+    let filename = match c_path.file_name() {
+        Some(name) => name.to_string_lossy(),
+        None => return false,
+    };
+    
+    // Must be exactly flipbook_textures.json
+    if filename != "common.json" {
+        return false;
+    }
+    
+    // Check if it's in valid animation locations
+    let common_json_patterns = [
+        "materials/common.json",
+        "/materials/common.json",
+        "resource_packs/vanilla/materials/common.json",
+        "assets/resource_packs/vanilla/materials/common.json",
+        "vanilla/materials/common.json",
+        "assets/materials/common.json",
+    ];
+    
+    common_json_patterns.iter().any(|pattern| {
+        path_str.contains(pattern) || path_str.ends_with(pattern)
+    })
+}
+
 fn get_java_cubemap_material_data(filename: &str) -> Option<&'static [u8]> {
     if !is_java_cubemap_enabled() {
         return None;
@@ -162,137 +238,6 @@ fn get_title_png_data(filename: &str) -> Option<&'static [u8]> {
         "title.png" => Some(TITLE_PNG),
         _ => None,
     }
-}
-
-fn is_particles_folder_to_block(c_path: &Path) -> bool {
-    if !is_particles_disabler_enabled() {
-        return false;
-    }
-    
-    let filename = match c_path.file_name() {
-        Some(name) => name.to_string_lossy(),
-        None => return false,
-    };
-    
-    let particle_files = [
-        "arrowspell.json",
-        "balloon_gas.json",
-        "basic_bubble.json",
-        "basic_bubble_manual.json",
-        "basic_crit.json",
-        "basic_flame.json",
-        "basic_portal.json",
-        "basic_smoke.json",
-        "bleach.json",
-        "block_destruct.json",
-        "breaking_item_icon.json",
-        "breaking_item_terrain.json",
-        "bubble_column_bubble.json",
-        "bubble_column_down.json",
-        "bubble_column_up.json",
-        "camera_shoot_explosion.json",
-        "campfire_smoke.json",
-        "campfire_smoke_tall.json",
-        "cauldron_bubble.json",
-        "cauldron_splash.json",
-        "cauldronspell.json",
-        "colored_flame.json",
-        "conduit.json",
-        "conduit_absorb.json",
-        "conduit_attack.json",
-        "critical_hit.json",
-        "dolphin_move.json",
-        "dragon_breath_fire.json",
-        "dragon_breath_lingering.json",
-        "dragon_breath_trail.json",
-        "dragon_death_explosion.json",
-        "dragon_destroy_block.json",
-        "dragon_dying_explosion.json",
-        "enchanting_table_particle.json",
-        "end_chest.json",
-        "endrod.json",
-        "evaporation_elephant_toothpaste.json",
-        "evocation_fang.json",
-        "evoker_spell.json",
-        "explosion_cauldron.json",
-        "explosion_death.json",
-        "explosion_egg_destroy.json",
-        "explosion_eyeofender_death.json",
-        "explosion_labtable_fire.json",
-        "explosion_level.json",
-        "explosion_manual.json",
-        "eye_of_ender_bubble.json",
-        "falling_border_dust.json",
-        "falling_dust.json",
-        "falling_dust_concrete_powder.json",
-        "falling_dust_dragon_egg.json",
-        "falling_dust_gravel.json",
-        "falling_dust_red_sand.json",
-        "falling_dust_sand.json",
-        "falling_dust_scaffolding.json",
-        "falling_dust_top_snow.json",
-        "fish_hook.json",
-        "fish_pos.json",
-        "guardian_attack.json",
-        "guardian_water_move.json",
-        "heart.json",
-        "huge_explosion_lab_misc.json",
-        "huge_explosion_level.json",
-        "ice_evaporation.json",
-        "ink.json",
-        "knockback_roar.json",
-        "lab_table_heatblock_dust.json",
-        "lab_table_misc_mystical.json",
-        "large_explosion_level.json",
-        "lava_drip.json",
-        "lava_particle.json",
-        "llama_spit.json",
-        "magnesium_salts.json",
-        "mob_block_spawn.json",
-        "mob_portal.json",
-        "mobflame.json",
-        "mobflame_single.json",
-        "mobspell.json",
-        "mycelium_dust.json",
-        "note.json",
-        "obsidian_glow_dust.json",
-        "phantom_trail.json",
-        "portal_directional.json",
-        "portal_east_west.json",
-        "portal_north_south.json",
-        "rain_splash.json",
-        "redstone_ore_dust.json",
-        "redstone_repeater_dust.json",
-        "redstone_torch_dust.json",
-        "redstone_wire_dust.json",
-        "rising_border_dust.json",
-        "shulker_bullet.json",
-        "silverfish_grief.json",
-        "sneeze.json",
-        "sparkler.json",
-        "splashpotionspell.json",
-        "sponge_absorb_bubble.json",
-        "squid_flee.json",
-        "squid_ink_bubble.json",
-        "squid_move.json",
-        "stunned.json",
-        "totem.json",
-        "totem_manual.json",
-        "underwater_torch_bubble.json",
-        "villager_angry.json",
-        "villager_happy.json",
-        "water_drip.json",
-        "water_evaporation_actor.json",
-        "water_evaporation_bucket.json",
-        "water_evaporation_manual.json",
-        "water_splash.json",
-        "water_splash_manual.json",
-        "water_wake.json",
-        "witchspell.json",
-        "wither_boss_invulnerable.json",
-    ];
-    
-    particle_files.contains(&filename.as_ref())
 }
 
 // Enhanced cape_invisible texture detection with more patterns
@@ -456,27 +401,6 @@ fn is_persona_file_to_block(c_path: &Path) -> bool {
     })
 }
 
-fn get_cape_model_data(filename: &str) -> Option<&'static [u8]> {
-    if !is_cape_physics_enabled() {
-        return None;
-    }
-    
-    match filename {
-        "mobs.json" => Some(MOBS_JSON),
-        _ => None,
-    }
-}
-
-fn get_cape_animation_data(filename: &str) -> Option<&'static [u8]> {
-    if !is_cape_physics_enabled() {
-        return None;
-    }
-    
-    match filename {
-        "player.animation.json" => Some(PLAYER_ANIMATION_JSON),
-        _ => None,
-    }
-}
 
 // Enhanced player.entity.json detection
 fn is_player_entity_file(c_path: &Path) -> bool {
@@ -644,13 +568,6 @@ pub(crate) unsafe fn open(
         }
     }
     
-    // Debug logging for particles disabler
-    if is_particles_disabler_enabled() {
-        let path_str = c_path.to_string_lossy();
-        if path_str.contains("particle") || path_str.contains("effect") {
-            log::info!("Particles disabler enabled - checking file: {}", c_path.display());
-        }
-    }
     
     // Handle cape_invisible texture replacement
     if is_cape_invisible_texture_file(c_path) {
@@ -673,15 +590,6 @@ pub(crate) unsafe fn open(
     // Block persona files if classic skins enabled
     if is_persona_file_to_block(c_path) {
         log::info!("Blocking persona file due to classic_skins enabled: {}", c_path.display());
-        if !aasset.is_null() {
-            ndk_sys::AAsset_close(aasset);
-        }
-        return std::ptr::null_mut();
-    }
-
-    // Block entire particles folder if particles disabler enabled
-    if is_particles_folder_to_block(c_path) {
-        log::info!("Blocking particles file due to particles_disabler enabled: {}", c_path.display());
         if !aasset.is_null() {
             ndk_sys::AAsset_close(aasset);
         }
@@ -794,6 +702,7 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
+    
     // No hurt cam camera replacements
     if is_no_hurt_cam_enabled() {
         let path_str = c_path.to_string_lossy();
@@ -843,21 +752,29 @@ pub(crate) unsafe fn open(
         return aasset;
     }
     
-    if let Some(cape_physics_animation_data) = get_cape_animation_data(&filename_str) {
-        log::info!("Intercepting {} with cape-physics animation (cape-physics enabled)", filename_str);
-        let buffer = cape_physics_animation_data.to_vec();
+    if let Some(shadows_material_data) = get_shadows_material_data(&filename_str) {
+        log::info!("Intercepting {} with shadow material (noshadows enabled)", filename_str);
+        let buffer = shadows_material_data.to_vec();
         let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
         wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
         return aasset;
     }
     
-    if let Some(cape_physics_model_data) = get_cape_model_data(&filename_str) {
-        log::info!("Intercepting {} with cape-physics model (cape-physics enabled)", filename_str);
-        let buffer = cape_physics_model_data.to_vec();
-        let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
-        wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
-        return aasset;
-    }
+    if is_no_flipbook_animations_file(c_path) {
+    log::info!("Intercepting shield animation with side shield animation: {}", c_path.display());
+    let buffer = FLIPBOOK_ANIMATION_JSON.to_vec();
+    let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+    wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+    return aasset;
+}
+
+if is_particles_disabler_file(c_path) {
+    log::info!("Intercepting common json with no particles: {}", c_path.display());
+    let buffer = COMMON_JSON.to_vec();
+    let mut wanted_lock = WANTED_ASSETS.lock().unwrap();
+    wanted_lock.insert(AAssetPtr(aasset), Cursor::new(buffer));
+    return aasset;
+}
     
     if let Some(java_cubemap_data) = get_java_cubemap_material_data(&filename_str) {
         log::info!("Intercepting {} with java-cubemap material (java-cubemap enabled)", filename_str);
